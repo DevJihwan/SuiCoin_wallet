@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@mysten/sui.js": "^0.14.0",
+    "bip39": "^3.0.4",
+    "sdk": "^0.5.0",
+    "tweetnacl": "^1.0.3"
+  }
+}
