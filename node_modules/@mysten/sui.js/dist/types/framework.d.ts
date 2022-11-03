@@ -2,12 +2,16 @@ import { GetObjectDataResponse, SuiMoveObject, SuiObjectInfo, SuiObject, SuiData
 import { SuiAddress } from './common';
 import { Option } from './option';
 import { StructTag } from './sui-bcs';
-export declare const SUI_PACKAGE_ID = "0x2";
+export declare const SUI_FRAMEWORK_ADDRESS = "0x2";
+export declare const MOVE_STDLIB_ADDRESS = "0x1";
+export declare const OBJECT_MODULE_NAME = "object";
+export declare const UID_STRUCT_NAME = "UID";
+export declare const ID_STRUCT_NAME = "ID";
+export declare const SUI_TYPE_ARG: string;
 export declare const COIN_TYPE: string;
 export declare const PAY_MODULE_NAME = "pay";
 export declare const PAY_SPLIT_COIN_VEC_FUNC_NAME = "split_vec";
 export declare const PAY_JOIN_COIN_FUNC_NAME = "join";
-export declare const SUI_TYPE_ARG = "0x2::sui::SUI";
 declare type ObjectData = ObjectDataFull | SuiObjectInfo;
 declare type ObjectDataFull = GetObjectDataResponse | SuiMoveObject;
 /**

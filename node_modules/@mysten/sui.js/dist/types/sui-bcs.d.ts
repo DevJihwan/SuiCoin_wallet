@@ -1,5 +1,6 @@
-import { bcs } from '@mysten/bcs';
+import { BCS } from '@mysten/bcs';
 import { SuiObjectRef } from './objects';
+declare const bcs: BCS;
 /**
  * Transaction type used for transferring objects.
  * For this transaction to be executed, and `SuiObjectRef` should be queried
@@ -146,6 +147,12 @@ export declare type TypeTag = {
     vector: TypeTag;
 } | {
     struct: StructTag;
+} | {
+    u16: null;
+} | {
+    u32: null;
+} | {
+    u256: null;
 };
 /**
  * Transaction type used for calling Move modules' functions.

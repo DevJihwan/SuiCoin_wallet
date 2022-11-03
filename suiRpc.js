@@ -101,17 +101,63 @@ function getMnemonic() {
 // 잔액 0.01sui
 /*
 * get object detail
+* return : address(pubkey)
 */
 function getObject() {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             provider.getObject('0x18ef8032392a821b3092b7f0e044cc05bb39bb8a')
                 .then(function (result) {
-                console.log("txn.status : " + result.status);
-                console.log("txn.details : " + result.details);
+                console.log("txn.status 1 : " + result.status);
+                console.log("txn.details 2 : " + result.details);
             });
             return [2 /*return*/];
         });
     });
 }
-getObject();
+//getObject();
+/*
+*   send sui coin
+*/
+function sendToken() {
+    return __awaiter(this, void 0, void 0, function () {
+        var mnemonics, seed;
+        return __generator(this, function (_a) {
+            mnemonics = "gentle embrace hard glance lake method draft fossil stick settle pear glove";
+            seed = bip39.mnemonicToSeed(mnemonics)
+                .then(function (buffer) {
+                //seed 문구를 uint8array로 변환
+                var a = new Uint8Array(buffer.toJSON().data.slice(0, 32));
+                console.log("convert to Uint8Array : " + a);
+                //시드로 부터 keypari생성
+                var keypair = sui_js_1.Ed25519Keypair.fromSeed(a);
+                console.log("keypair : " + keypair.getPublicKey());
+                return keypair;
+            })
+                .then(function (result) {
+                console.log("result : " + result.getPublicKey());
+                //singer 설정 (param : keypair, rpc)
+                var signer = new sui_js_1.RawSigner(result, provider);
+                console.log("signer : " + signer);
+                return signer;
+            })
+                .then(function (_singer) {
+                console.log("_singer : " + _singer);
+                var txn = {
+                    suiObjectId: "0x33ef108d19289702a352a86b6f948d5e4b437500",
+                    gasBudget: 1000,
+                    recipient: "0x52a2abe8940ae83a48e707a4d583db5b8e40a2b5",
+                    amount: 5000000
+                };
+                _singer.transferSuiWithRequestType(txn)
+                    .then(function (result) {
+                    console.log("result : " + result);
+                });
+            })["catch"](function (error) {
+                console.log("error : " + error);
+            });
+            return [2 /*return*/];
+        });
+    });
+}
+sendToken();

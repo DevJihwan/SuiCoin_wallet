@@ -45,7 +45,7 @@ export declare class Ed25519Keypair implements Keypair {
         skipValidation?: boolean;
     }): Ed25519Keypair;
     /**
-     * Generate a Ed25519 keypair from a 32 byte seed.
+     * Generate an Ed25519 keypair from a 32 byte seed.
      *
      * @param seed seed byte array
      */

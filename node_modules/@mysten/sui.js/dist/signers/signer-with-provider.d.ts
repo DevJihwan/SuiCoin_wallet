@@ -1,6 +1,7 @@
 import { Provider } from '../providers/provider';
+import { HttpHeaders } from '../rpc/client';
 import { Base64DataBuffer } from '../serialization/base64';
-import { ExecuteTransactionRequestType, SuiAddress, SuiExecuteTransactionResponse } from '../types';
+import { ExecuteTransactionRequestType, FaucetResponse, SuiAddress, SuiExecuteTransactionResponse } from '../types';
 import { SignaturePubkeyPair, Signer } from './signer';
 import { MoveCallTransaction, MergeCoinTransaction, PayTransaction, PaySuiTransaction, PayAllSuiTransaction, SplitCoinTransaction, TransferObjectTransaction, TransferSuiTransaction, TxnDataSerializer, PublishTransaction, SignableTransaction } from './txn-data-serializers/txn-data-serializer';
 export declare abstract class SignerWithProvider implements Signer {
@@ -12,6 +13,12 @@ export declare abstract class SignerWithProvider implements Signer {
      */
     abstract signData(data: Base64DataBuffer): Promise<SignaturePubkeyPair>;
     abstract connect(provider: Provider): SignerWithProvider;
+    /**
+     * Request gas tokens from a faucet server and send to the signer
+     * address
+     * @param httpHeaders optional request headers
+     */
+    requestSuiFromFaucet(httpHeaders?: HttpHeaders): Promise<FaucetResponse>;
     constructor(provider?: Provider, serializer?: TxnDataSerializer);
     /**
      * Sign a transaction and submit to the Fullnode for execution. Only exists

@@ -1,4 +1,4 @@
-import { SuiAddress, ObjectOwner, TransactionDigest } from './common';
+import { ObjectOwner, SuiAddress, TransactionDigest } from './common';
 import { ObjectId, SequenceNumber } from './objects';
 import { SuiJsonValue } from './transactions';
 export declare type MoveEvent = {
@@ -15,35 +15,60 @@ export declare type PublishEvent = {
     sender: SuiAddress;
     packageId: ObjectId;
 };
+export declare type CoinBalanceChangeEvent = {
+    packageId: ObjectId;
+    transactionModule: string;
+    sender: SuiAddress;
+    owner: ObjectOwner;
+    changeType: BalanceChangeType;
+    coinType: string;
+    coinObjectId: ObjectId;
+    version: SequenceNumber;
+    amount: number;
+};
 export declare type TransferObjectEvent = {
     packageId: ObjectId;
     transactionModule: string;
     sender: SuiAddress;
     recipient: ObjectOwner;
+    objectType: string;
     objectId: ObjectId;
     version: SequenceNumber;
-    type: string;
-    amount: number | null;
+};
+export declare type MutateObjectEvent = {
+    packageId: ObjectId;
+    transactionModule: string;
+    sender: SuiAddress;
+    objectType: string;
+    objectId: ObjectId;
+    version: SequenceNumber;
 };
 export declare type DeleteObjectEvent = {
     packageId: ObjectId;
     transactionModule: string;
     sender: SuiAddress;
     objectId: ObjectId;
+    version: SequenceNumber;
 };
 export declare type NewObjectEvent = {
     packageId: ObjectId;
     transactionModule: string;
     sender: SuiAddress;
     recipient: ObjectOwner;
+    objectType: string;
     objectId: ObjectId;
+    version: SequenceNumber;
 };
 export declare type SuiEvent = {
     moveEvent: MoveEvent;
 } | {
     publish: PublishEvent;
 } | {
+    coinBalanceChange: CoinBalanceChangeEvent;
+} | {
     transferObject: TransferObjectEvent;
+} | {
+    mutateObject: MutateObjectEvent;
 } | {
     deleteObject: DeleteObjectEvent;
 } | {
@@ -57,7 +82,8 @@ export declare type MoveEventField = {
     path: string;
     value: SuiJsonValue;
 };
-export declare type EventType = 'MoveEvent' | 'Publish' | 'TransferObject' | 'DeleteObject' | 'NewObject' | 'EpochChange' | 'Checkpoint';
+export declare type EventType = 'MoveEvent' | 'Publish' | 'TransferObject' | 'MutateObject' | 'CoinBalanceChange' | 'DeleteObject' | 'NewObject' | 'EpochChange' | 'Checkpoint';
+export declare type BalanceChangeType = "Gas" | "Pay" | "Receive";
 export declare type SuiEventFilter = {
     Package: ObjectId;
 } | {

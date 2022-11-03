@@ -17,4 +17,5 @@ export * from './signers/signer';
 export * from './signers/raw-signer';
 export * from './signers/signer-with-provider';
 export * from './types';
+export * from './utils/api-endpoints';
 export * from './types/index.guard';

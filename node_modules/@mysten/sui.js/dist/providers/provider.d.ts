@@ -1,5 +1,6 @@
 import { SignatureScheme } from '../cryptography/publickey';
-import { CoinDenominationInfoResponse, GetObjectDataResponse, SuiObjectInfo, GatewayTxSeqNumber, GetTxnDigestsResponse, SuiObjectRef, SuiMoveFunctionArgTypes, SuiMoveNormalizedFunction, SuiMoveNormalizedStruct, SuiMoveNormalizedModule, SuiMoveNormalizedModules, SuiEventFilter, SuiEventEnvelope, SubscriptionId, ExecuteTransactionRequestType, SuiExecuteTransactionResponse, TransactionDigest, ObjectId, SuiAddress, ObjectOwner, SuiEvents, PaginatedTransactionDigests, TransactionQuery, Ordering, RpcApiVersion } from '../types';
+import { HttpHeaders } from '../rpc/client';
+import { CoinDenominationInfoResponse, GetObjectDataResponse, SuiObjectInfo, GatewayTxSeqNumber, GetTxnDigestsResponse, SuiObjectRef, SuiMoveFunctionArgTypes, SuiMoveNormalizedFunction, SuiMoveNormalizedStruct, SuiMoveNormalizedModule, SuiMoveNormalizedModules, SuiEventFilter, SuiEventEnvelope, SubscriptionId, ExecuteTransactionRequestType, SuiExecuteTransactionResponse, TransactionDigest, ObjectId, SuiAddress, ObjectOwner, SuiEvents, PaginatedTransactionDigests, TransactionQuery, Ordering, RpcApiVersion, FaucetResponse } from '../types';
 export declare abstract class Provider {
     /**
      * Fetch and cache the RPC API version number
@@ -8,6 +9,12 @@ export declare abstract class Provider {
      * connected to, or undefined if any error occurred
      */
     abstract getRpcApiVersion(): Promise<RpcApiVersion | undefined>;
+    /**
+     * Request gas tokens from a faucet server
+     * @param recipient the address for receiving the tokens
+     * @param httpHeaders optional request headers
+     */
+    abstract requestSuiFromFaucet(recipient: SuiAddress, httpHeaders?: HttpHeaders): Promise<FaucetResponse>;
     /**
      * Get all objects owned by an address
      */

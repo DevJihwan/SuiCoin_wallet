@@ -185,6 +185,15 @@ var Ed25519Keypair = class {
     return new Ed25519Keypair(nacl2.sign.keyPair());
   }
   static fromSecretKey(secretKey, options) {
+    const secretKeyLength = secretKey.length;
+    if (secretKeyLength != 64) {
+      if (secretKeyLength == 32) {
+        throw new Error(
+          "Wrong secretKey size. Expected 64 bytes, got 32. Similar function exists: fromSeed(seed: Uint8Array)"
+        );
+      }
+      throw new Error(`Wrong secretKey size. Expected 64 bytes, got ${secretKeyLength}.`);
+    }
     const keypair = nacl2.sign.keyPair.fromSecretKey(secretKey);
     if (!options || !options.skipValidation) {
       const encoder = new TextEncoder();
@@ -197,6 +206,10 @@ var Ed25519Keypair = class {
     return new Ed25519Keypair(keypair);
   }
   static fromSeed(seed) {
+    const seedLength = seed.length;
+    if (seedLength != 32) {
+      throw new Error(`Wrong seed size. Expected 32 bytes, got ${seedLength}.`);
+    }
     return new Ed25519Keypair(nacl2.sign.keyPair.fromSeed(seed));
   }
   getPublicKey() {
@@ -646,23 +659,32 @@ function isMoveEvent(obj, _argumentName) {
 function isPublishEvent(obj, _argumentName) {
   return (obj !== null && typeof obj === "object" || typeof obj === "function") && isTransactionDigest(obj.sender) && isTransactionDigest(obj.packageId);
 }
+function isCoinBalanceChangeEvent(obj, _argumentName) {
+  return (obj !== null && typeof obj === "object" || typeof obj === "function") && isTransactionDigest(obj.packageId) && isTransactionDigest(obj.transactionModule) && isTransactionDigest(obj.sender) && isObjectOwner(obj.owner) && isBalanceChangeType(obj.changeType) && isTransactionDigest(obj.coinType) && isTransactionDigest(obj.coinObjectId) && isSuiMoveTypeParameterIndex(obj.version) && isSuiMoveTypeParameterIndex(obj.amount);
+}
 function isTransferObjectEvent(obj, _argumentName) {
-  return (obj !== null && typeof obj === "object" || typeof obj === "function") && isTransactionDigest(obj.packageId) && isTransactionDigest(obj.transactionModule) && isTransactionDigest(obj.sender) && isObjectOwner(obj.recipient) && isTransactionDigest(obj.objectId) && isSuiMoveTypeParameterIndex(obj.version) && isTransactionDigest(obj.type) && (obj.amount === null || isSuiMoveTypeParameterIndex(obj.amount));
+  return (obj !== null && typeof obj === "object" || typeof obj === "function") && isTransactionDigest(obj.packageId) && isTransactionDigest(obj.transactionModule) && isTransactionDigest(obj.sender) && isObjectOwner(obj.recipient) && isTransactionDigest(obj.objectType) && isTransactionDigest(obj.objectId) && isSuiMoveTypeParameterIndex(obj.version);
+}
+function isMutateObjectEvent(obj, _argumentName) {
+  return (obj !== null && typeof obj === "object" || typeof obj === "function") && isTransactionDigest(obj.packageId) && isTransactionDigest(obj.transactionModule) && isTransactionDigest(obj.sender) && isTransactionDigest(obj.objectType) && isTransactionDigest(obj.objectId) && isSuiMoveTypeParameterIndex(obj.version);
 }
 function isDeleteObjectEvent(obj, _argumentName) {
-  return (obj !== null && typeof obj === "object" || typeof obj === "function") && isTransactionDigest(obj.packageId) && isTransactionDigest(obj.transactionModule) && isTransactionDigest(obj.sender) && isTransactionDigest(obj.objectId);
+  return (obj !== null && typeof obj === "object" || typeof obj === "function") && isTransactionDigest(obj.packageId) && isTransactionDigest(obj.transactionModule) && isTransactionDigest(obj.sender) && isTransactionDigest(obj.objectId) && isSuiMoveTypeParameterIndex(obj.version);
 }
 function isNewObjectEvent(obj, _argumentName) {
-  return (obj !== null && typeof obj === "object" || typeof obj === "function") && isTransactionDigest(obj.packageId) && isTransactionDigest(obj.transactionModule) && isTransactionDigest(obj.sender) && isObjectOwner(obj.recipient) && isTransactionDigest(obj.objectId);
+  return (obj !== null && typeof obj === "object" || typeof obj === "function") && isTransactionDigest(obj.packageId) && isTransactionDigest(obj.transactionModule) && isTransactionDigest(obj.sender) && isObjectOwner(obj.recipient) && isTransactionDigest(obj.objectType) && isTransactionDigest(obj.objectId) && isSuiMoveTypeParameterIndex(obj.version);
 }
 function isSuiEvent(obj, _argumentName) {
-  return (obj !== null && typeof obj === "object" || typeof obj === "function") && isMoveEvent(obj.moveEvent) || (obj !== null && typeof obj === "object" || typeof obj === "function") && isPublishEvent(obj.publish) || (obj !== null && typeof obj === "object" || typeof obj === "function") && isTransferObjectEvent(obj.transferObject) || (obj !== null && typeof obj === "object" || typeof obj === "function") && isDeleteObjectEvent(obj.deleteObject) || (obj !== null && typeof obj === "object" || typeof obj === "function") && isNewObjectEvent(obj.newObject) || (obj !== null && typeof obj === "object" || typeof obj === "function") && typeof obj.epochChange === "bigint" || (obj !== null && typeof obj === "object" || typeof obj === "function") && typeof obj.checkpoint === "bigint";
+  return (obj !== null && typeof obj === "object" || typeof obj === "function") && isMoveEvent(obj.moveEvent) || (obj !== null && typeof obj === "object" || typeof obj === "function") && isPublishEvent(obj.publish) || (obj !== null && typeof obj === "object" || typeof obj === "function") && isCoinBalanceChangeEvent(obj.coinBalanceChange) || (obj !== null && typeof obj === "object" || typeof obj === "function") && isTransferObjectEvent(obj.transferObject) || (obj !== null && typeof obj === "object" || typeof obj === "function") && isMutateObjectEvent(obj.mutateObject) || (obj !== null && typeof obj === "object" || typeof obj === "function") && isDeleteObjectEvent(obj.deleteObject) || (obj !== null && typeof obj === "object" || typeof obj === "function") && isNewObjectEvent(obj.newObject) || (obj !== null && typeof obj === "object" || typeof obj === "function") && typeof obj.epochChange === "bigint" || (obj !== null && typeof obj === "object" || typeof obj === "function") && typeof obj.checkpoint === "bigint";
 }
 function isMoveEventField(obj, _argumentName) {
   return (obj !== null && typeof obj === "object" || typeof obj === "function") && isTransactionDigest(obj.path) && isSuiJsonValue(obj.value);
 }
 function isEventType(obj, _argumentName) {
-  return obj === "MoveEvent" || obj === "Publish" || obj === "TransferObject" || obj === "DeleteObject" || obj === "NewObject" || obj === "EpochChange" || obj === "Checkpoint";
+  return obj === "MoveEvent" || obj === "Publish" || obj === "TransferObject" || obj === "MutateObject" || obj === "CoinBalanceChange" || obj === "DeleteObject" || obj === "NewObject" || obj === "EpochChange" || obj === "Checkpoint";
+}
+function isBalanceChangeType(obj, _argumentName) {
+  return obj === "Gas" || obj === "Pay" || obj === "Receive";
 }
 function isSuiEventFilter(obj, _argumentName) {
   return (obj !== null && typeof obj === "object" || typeof obj === "function") && isTransactionDigest(obj.Package) || (obj !== null && typeof obj === "object" || typeof obj === "function") && isTransactionDigest(obj.Module) || (obj !== null && typeof obj === "object" || typeof obj === "function") && isTransactionDigest(obj.MoveEventType) || (obj !== null && typeof obj === "object" || typeof obj === "function") && isMoveEventField(obj.MoveEventField) || (obj !== null && typeof obj === "object" || typeof obj === "function") && isTransactionDigest(obj.SenderAddress) || (obj !== null && typeof obj === "object" || typeof obj === "function") && isEventType(obj.EventType) || (obj !== null && typeof obj === "object" || typeof obj === "function") && Array.isArray(obj.All) && obj.All.every(
@@ -721,7 +743,7 @@ function isExecuteTransactionRequestType(obj, _argumentName) {
   return obj === "ImmediateReturn" || obj === "WaitForTxCert" || obj === "WaitForEffectsCert" || obj === "WaitForLocalExecution";
 }
 function isTransactionKindName(obj, _argumentName) {
-  return obj === "Publish" || obj === "TransferObject" || obj === "Call" || obj === "TransferSui" || obj === "ChangeEpoch" || obj === "Pay" || obj === "PaySui" || obj === "PayAllSui";
+  return obj === "Publish" || obj === "TransferObject" || obj === "Pay" || obj === "Call" || obj === "TransferSui" || obj === "ChangeEpoch" || obj === "PaySui" || obj === "PayAllSui";
 }
 function isSuiTransactionKind(obj, _argumentName) {
   return (obj !== null && typeof obj === "object" || typeof obj === "function") && isTransferObject(obj.TransferObject) || (obj !== null && typeof obj === "object" || typeof obj === "function") && isSuiMovePackage(obj.Publish) || (obj !== null && typeof obj === "object" || typeof obj === "function") && isMoveCall(obj.Call) || (obj !== null && typeof obj === "object" || typeof obj === "function") && isSuiTransferSui(obj.TransferSui) || (obj !== null && typeof obj === "object" || typeof obj === "function") && isSuiChangeEpoch(obj.ChangeEpoch) || (obj !== null && typeof obj === "object" || typeof obj === "function") && isPay(obj.Pay) || (obj !== null && typeof obj === "object" || typeof obj === "function") && isPaySui(obj.PaySui) || (obj !== null && typeof obj === "object" || typeof obj === "function") && isPayAllSui(obj.PayAllSui);
@@ -898,7 +920,7 @@ function isStructTag(obj, _argumentName) {
   );
 }
 function isTypeTag(obj, _argumentName) {
-  return (obj !== null && typeof obj === "object" || typeof obj === "function") && obj.bool === null || (obj !== null && typeof obj === "object" || typeof obj === "function") && obj.u8 === null || (obj !== null && typeof obj === "object" || typeof obj === "function") && obj.u64 === null || (obj !== null && typeof obj === "object" || typeof obj === "function") && obj.u128 === null || (obj !== null && typeof obj === "object" || typeof obj === "function") && obj.address === null || (obj !== null && typeof obj === "object" || typeof obj === "function") && obj.signer === null || (obj !== null && typeof obj === "object" || typeof obj === "function") && isTypeTag(obj.vector) || (obj !== null && typeof obj === "object" || typeof obj === "function") && isStructTag(obj.struct);
+  return (obj !== null && typeof obj === "object" || typeof obj === "function") && obj.bool === null || (obj !== null && typeof obj === "object" || typeof obj === "function") && obj.u8 === null || (obj !== null && typeof obj === "object" || typeof obj === "function") && obj.u64 === null || (obj !== null && typeof obj === "object" || typeof obj === "function") && obj.u128 === null || (obj !== null && typeof obj === "object" || typeof obj === "function") && obj.address === null || (obj !== null && typeof obj === "object" || typeof obj === "function") && obj.signer === null || (obj !== null && typeof obj === "object" || typeof obj === "function") && isTypeTag(obj.vector) || (obj !== null && typeof obj === "object" || typeof obj === "function") && isStructTag(obj.struct) || (obj !== null && typeof obj === "object" || typeof obj === "function") && obj.u16 === null || (obj !== null && typeof obj === "object" || typeof obj === "function") && obj.u32 === null || (obj !== null && typeof obj === "object" || typeof obj === "function") && obj.u256 === null;
 }
 function isMoveCallTx(obj, _argumentName) {
   return (obj !== null && typeof obj === "object" || typeof obj === "function") && (obj.Call !== null && typeof obj.Call === "object" || typeof obj.Call === "function") && isSuiObjectRef(obj.Call.package) && isTransactionDigest(obj.Call.module) && isTransactionDigest(obj.Call.function) && Array.isArray(obj.Call.typeArguments) && obj.Call.typeArguments.every(
@@ -920,6 +942,12 @@ function isTransactionData(obj, _argumentName) {
 }
 function isRpcApiVersion(obj, _argumentName) {
   return (obj !== null && typeof obj === "object" || typeof obj === "function") && isSuiMoveTypeParameterIndex(obj.major) && isSuiMoveTypeParameterIndex(obj.minor) && isSuiMoveTypeParameterIndex(obj.patch);
+}
+function isFaucetCoinInfo(obj, _argumentName) {
+  return (obj !== null && typeof obj === "object" || typeof obj === "function") && isSuiMoveTypeParameterIndex(obj.amount) && isTransactionDigest(obj.id) && isTransactionDigest(obj.transfer_tx_digest);
+}
+function isFaucetResponse(obj, _argumentName) {
+  return (obj !== null && typeof obj === "object" || typeof obj === "function") && isFaucetCoinInfo(obj.transferred_gas_objects) && (obj.error === null || isTransactionDigest(obj.error));
 }
 
 // src/types/common.ts
@@ -1212,13 +1240,17 @@ function getOption(option) {
 }
 
 // src/types/framework.ts
-var SUI_PACKAGE_ID = "0x2";
-var COIN_TYPE = `${SUI_PACKAGE_ID}::coin::Coin`;
+var SUI_FRAMEWORK_ADDRESS = "0x2";
+var MOVE_STDLIB_ADDRESS = "0x1";
+var OBJECT_MODULE_NAME = "object";
+var UID_STRUCT_NAME = "UID";
+var ID_STRUCT_NAME = "ID";
+var SUI_TYPE_ARG = `${SUI_FRAMEWORK_ADDRESS}::sui::SUI`;
+var COIN_TYPE = `${SUI_FRAMEWORK_ADDRESS}::coin::Coin`;
 var PAY_MODULE_NAME = "pay";
 var PAY_SPLIT_COIN_VEC_FUNC_NAME = "split_vec";
 var PAY_JOIN_COIN_FUNC_NAME = "join";
 var COIN_TYPE_ARG_REGEX = /^0x2::coin::Coin<(.+)>$/;
-var SUI_TYPE_ARG = "0x2::sui::SUI";
 var Coin = class {
   static isCoin(data) {
     var _a;
@@ -1351,9 +1383,10 @@ var Delegation = _Delegation;
 Delegation.SUI_OBJECT_TYPE = "0x2::delegation::Delegation";
 
 // src/types/sui-bcs.ts
-import { bcs, decodeStr, encodeStr } from "@mysten/bcs";
+import { BCS, decodeStr, encodeStr, getSuiMoveConfig } from "@mysten/bcs";
 import { Buffer as Buffer5 } from "buffer";
-bcs.registerVectorType("vector<u8>", "u8").registerVectorType("vector<u64>", "u64").registerVectorType("vector<u128>", "u128").registerVectorType("vector<vector<u8>>", "vector<u8>").registerAddressType("ObjectID", 20).registerAddressType("SuiAddress", 20).registerAddressType("address", 20).registerType(
+var bcs = new BCS(getSuiMoveConfig());
+bcs.registerType(
   "utf8string",
   (writer, str) => {
     let bytes = Array.from(Buffer5.from(str));
@@ -1375,46 +1408,46 @@ bcs.registerVectorType("vector<u8>", "u8").registerVectorType("vector<u64>", "u6
   }
 );
 bcs.registerStructType("SuiObjectRef", {
-  objectId: "ObjectID",
+  objectId: "address",
   version: "u64",
   digest: "ObjectDigest"
 });
 bcs.registerStructType("TransferObjectTx", {
-  recipient: "SuiAddress",
+  recipient: "address",
   object_ref: "SuiObjectRef"
 });
-bcs.registerVectorType("vector<SuiAddress>", "SuiAddress").registerVectorType("vector<SuiObjectRef>", "SuiObjectRef").registerStructType("PayTx", {
+bcs.registerStructType("PayTx", {
   coins: "vector<SuiObjectRef>",
-  recipients: "vector<SuiAddress>",
+  recipients: "vector<address>",
   amounts: "vector<u64>"
 });
 bcs.registerStructType("PaySuiTx", {
   coins: "vector<SuiObjectRef>",
-  recipients: "vector<SuiAddress>",
+  recipients: "vector<address>",
   amounts: "vector<u64>"
 });
 bcs.registerStructType("PayAllSuiTx", {
   coins: "vector<SuiObjectRef>",
-  recipient: "SuiAddress"
+  recipient: "address"
 });
-bcs.registerEnumType("Option<u64>", {
+bcs.registerEnumType("Option<T>", {
   None: null,
-  Some: "u64"
+  Some: "T"
 });
 bcs.registerStructType("TransferSuiTx", {
-  recipient: "SuiAddress",
+  recipient: "address",
   amount: "Option<u64>"
 });
 bcs.registerStructType("PublishTx", {
   modules: "vector<vector<u8>>"
 });
 bcs.registerStructType("SharedObjectRef", {
-  objectId: "ObjectID",
+  objectId: "address",
   initialSharedVersion: "u64"
 }).registerEnumType("ObjectArg", {
   ImmOrOwned: "SuiObjectRef",
   Shared: "SharedObjectRef"
-}).registerVectorType("vector<ObjectArg>", "ObjectArg").registerEnumType("CallArg", {
+}).registerEnumType("CallArg", {
   Pure: "vector<u8>",
   Object: "ObjectArg",
   ObjVec: "vector<ObjectArg>"
@@ -1427,14 +1460,17 @@ bcs.registerEnumType("TypeTag", {
   address: null,
   signer: null,
   vector: "TypeTag",
-  struct: "StructTag"
-}).registerVectorType("vector<TypeTag>", "TypeTag").registerStructType("StructTag", {
-  address: "SuiAddress",
+  struct: "StructTag",
+  u16: null,
+  u32: null,
+  u256: null
+}).registerStructType("StructTag", {
+  address: "address",
   module: "string",
   name: "string",
   typeParams: "vector<TypeTag>"
 });
-bcs.registerVectorType("vector<CallArg>", "CallArg").registerStructType("MoveCallTx", {
+bcs.registerStructType("MoveCallTx", {
   package: "SuiObjectRef",
   module: "string",
   function: "string",
@@ -1450,25 +1486,25 @@ bcs.registerEnumType("Transaction", {
   PaySui: "PaySuiTx",
   PayAllSui: "PayAllSuiTx"
 });
-bcs.registerVectorType("vector<Transaction>", "Transaction").registerEnumType("TransactionKind", {
+bcs.registerEnumType("TransactionKind", {
   Single: "Transaction",
   Batch: "vector<Transaction>"
 });
 bcs.registerStructType("TransactionData", {
   kind: "TransactionKind",
-  sender: "SuiAddress",
+  sender: "address",
   gasPayment: "SuiObjectRef",
   gasPrice: "u64",
   gasBudget: "u64"
 });
 bcs.registerEnumType("ObjectArg_Deprecated", {
   ImmOrOwned: "SuiObjectRef",
-  Shared_Deprecated: "ObjectID"
-}).registerVectorType("vector<ObjectArg_Deprecated>", "ObjectArg_Deprecated").registerEnumType("CallArg_Deprecated", {
+  Shared_Deprecated: "address"
+}).registerEnumType("CallArg_Deprecated", {
   Pure: "vector<u8>",
   Object: "ObjectArg_Deprecated",
   ObjVec: "vector<ObjectArg_Deprecated>"
-}).registerVectorType("vector<CallArg_Deprecated>", "CallArg_Deprecated").registerStructType("MoveCallTx_Deprecated", {
+}).registerStructType("MoveCallTx_Deprecated", {
   package: "SuiObjectRef",
   module: "string",
   function: "string",
@@ -1482,15 +1518,12 @@ bcs.registerEnumType("ObjectArg_Deprecated", {
   Pay: "PayTx",
   PaySui: "PaySuiTx",
   PayAllSui: "PayAllSuiTx"
-}).registerVectorType(
-  "vector<Transaction_Deprecated>",
-  "Transaction_Deprecated"
-).registerEnumType("TransactionKind_Deprecated", {
+}).registerEnumType("TransactionKind_Deprecated", {
   Single: "Transaction_Deprecated",
   Batch: "vector<Transaction_Deprecated>"
 }).registerStructType("TransactionData_Deprecated", {
   kind: "TransactionKind_Deprecated",
-  sender: "SuiAddress",
+  sender: "address",
   gasPayment: "SuiObjectRef",
   gasPrice: "u64",
   gasBudget: "u64"
@@ -1663,6 +1696,45 @@ var WebsocketClient = class {
   }
 };
 
+// src/utils/api-endpoints.ts
+var Network = /* @__PURE__ */ ((Network2) => {
+  Network2["LOCAL"] = "LOCAL";
+  Network2["DEVNET"] = "DEVNET";
+  return Network2;
+})(Network || {});
+var NETWORK_TO_API = {
+  ["LOCAL" /* LOCAL */]: {
+    fullNode: "http://127.0.0.1:9000",
+    faucet: "http://127.0.0.1:9123/gas"
+  },
+  ["DEVNET" /* DEVNET */]: {
+    fullNode: "https://fullnode.devnet.sui.io/",
+    faucet: "https://faucet.devnet.sui.io/gas"
+  }
+};
+
+// src/rpc/faucet-client.ts
+import fetch2 from "cross-fetch";
+async function requestSuiFromFaucet(endpoint, recipient, httpHeaders) {
+  const res = await fetch2(endpoint, {
+    method: "POST",
+    body: JSON.stringify({
+      FixedAmountRequest: {
+        recipient
+      }
+    }),
+    headers: {
+      "Content-Type": "application/json",
+      ...httpHeaders || {}
+    }
+  });
+  const parsed = await res.json();
+  if (parsed.error) {
+    throw new Error(`Faucet returns error: ${parsed.error}`);
+  }
+  return parsed;
+}
+
 // src/providers/json-rpc-provider.ts
 var isNumber = (val) => typeof val === "number";
 var isAny = (_val) => true;
@@ -1672,14 +1744,21 @@ var DEFAULT_OPTIONS = {
   versionCacheTimoutInSeconds: 600
 };
 var JsonRpcProvider = class extends Provider {
-  constructor(endpoint, options = DEFAULT_OPTIONS) {
+  constructor(endpoint = "DEVNET" /* DEVNET */, options = DEFAULT_OPTIONS) {
     super();
-    this.endpoint = endpoint;
     this.options = options;
+    if (Object.values(Network).includes(endpoint)) {
+      this.endpoints = NETWORK_TO_API[endpoint];
+    } else {
+      this.endpoints = {
+        fullNode: endpoint,
+        faucet: options.faucetURL
+      };
+    }
     const opts = { ...DEFAULT_OPTIONS, ...options };
-    this.client = new JsonRpcClient(endpoint);
+    this.client = new JsonRpcClient(this.endpoints.fullNode);
     this.wsClient = new WebsocketClient(
-      endpoint,
+      this.endpoints.fullNode,
       opts.skipDataValidation,
       opts.socketOptions
     );
@@ -1702,6 +1781,12 @@ var JsonRpcProvider = class extends Provider {
       console.warn("Error fetching version number of the RPC API", err);
     }
     return void 0;
+  }
+  async requestSuiFromFaucet(recipient, httpHeaders) {
+    if (!this.endpoints.faucet) {
+      throw new Error("Faucet URL is not specified");
+    }
+    return requestSuiFromFaucet(this.endpoints.faucet, recipient, httpHeaders);
   }
   async getMoveFunctionArgTypes(packageId, moduleName, functionName) {
     try {
@@ -2378,7 +2463,27 @@ var RpcTxnDataSerializer = class {
 
 // src/signers/txn-data-serializers/call-arg-serializer.ts
 var MOVE_CALL_SER_ERROR = "Move call argument serialization error:";
+var STD_ASCII_MODULE_NAME = "ascii";
+var STD_ASCII_STRUCT_NAME = "String";
+var STD_UTF8_MODULE_NAME = "string";
+var STD_UTF8_STRUCT_NAME = "String";
+var RESOLVED_SUI_ID = {
+  address: SUI_FRAMEWORK_ADDRESS,
+  module: OBJECT_MODULE_NAME,
+  name: ID_STRUCT_NAME
+};
+var RESOLVED_ASCII_STR = {
+  address: MOVE_STDLIB_ADDRESS,
+  module: STD_ASCII_MODULE_NAME,
+  name: STD_ASCII_STRUCT_NAME
+};
+var RESOLVED_UTF8_STR = {
+  address: MOVE_STDLIB_ADDRESS,
+  module: STD_UTF8_MODULE_NAME,
+  name: STD_UTF8_STRUCT_NAME
+};
 var isTypeFunc = (type) => (t) => typeof t === type;
+var isSameStruct = (a, b) => a.address === b.address && a.module === b.module && a.name === b.name;
 var CallArgSerializer = class {
   constructor(provider) {
     this.provider = provider;
@@ -2458,6 +2563,12 @@ var CallArgSerializer = class {
     return { ImmOrOwned: getObjectReference(object) };
   }
   async newCallArg(expectedType, argVal) {
+    const serType = this.getPureSerializationType(expectedType, argVal);
+    if (serType !== void 0) {
+      return {
+        Pure: bcs.ser(serType, argVal).toBytes()
+      };
+    }
     const structVal = extractStructTag(expectedType);
     if (structVal != null) {
       if (typeof argVal !== "string") {
@@ -2483,10 +2594,9 @@ var CallArgSerializer = class {
         )
       };
     }
-    let serType = this.getPureSerializationType(expectedType, argVal);
-    return {
-      Pure: bcs.ser(serType, argVal).toBytes()
-    };
+    throw new Error(
+      `Unknown call arg type ${JSON.stringify(expectedType, null, 2)} for value ${JSON.stringify(argVal, null, 2)}`
+    );
   }
   extractIdFromObjectArg(arg) {
     if ("ImmOrOwned" in arg) {
@@ -2508,9 +2618,18 @@ var CallArgSerializer = class {
     return bcs.de(serType, Uint8Array.from(argVal.Pure));
   }
   getPureSerializationType(normalizedType, argVal) {
-    const allowedTypes = ["Address", "Bool", "U8", "U32", "U64", "U128"];
+    const allowedTypes = [
+      "Address",
+      "Bool",
+      "U8",
+      "U16",
+      "U32",
+      "U64",
+      "U128",
+      "U256"
+    ];
     if (typeof normalizedType === "string" && allowedTypes.includes(normalizedType)) {
-      if (normalizedType in ["U8", "U32", "U64", "U128"]) {
+      if (normalizedType in ["U8", "U16", "U32", "U64", "U128", "U256"]) {
         this.checkArgVal(isTypeFunc("number"), argVal, "number");
       } else if (normalizedType === "Bool") {
         this.checkArgVal(isTypeFunc("boolean"), argVal, "boolean");
@@ -2544,17 +2663,21 @@ var CallArgSerializer = class {
         normalizedType.Vector,
         argVal ? argVal[0] : void 0
       );
-      const res = `vector<${innerType}>`;
-      bcs.registerVectorType(res, innerType);
-      return res;
+      if (innerType === void 0) {
+        return void 0;
+      }
+      return `vector<${innerType}>`;
     }
-    throw new Error(
-      `${MOVE_CALL_SER_ERROR} unknown normalized type ${JSON.stringify(
-        normalizedType,
-        null,
-        2
-      )}`
-    );
+    if ("Struct" in normalizedType) {
+      if (isSameStruct(normalizedType.Struct, RESOLVED_ASCII_STR)) {
+        return "string";
+      } else if (isSameStruct(normalizedType.Struct, RESOLVED_UTF8_STR)) {
+        return "utf8string";
+      } else if (isSameStruct(normalizedType.Struct, RESOLVED_SUI_ID)) {
+        return "address";
+      }
+    }
+    return void 0;
   }
   checkArgVal(check, argVal, expectedType) {
     if (argVal === void 0) {
@@ -2782,7 +2905,7 @@ var LocalTxnDataSerializer = class {
   async newMergeCoin(signerAddress, t) {
     try {
       return await this.newMoveCall(signerAddress, {
-        packageObjectId: SUI_PACKAGE_ID,
+        packageObjectId: SUI_FRAMEWORK_ADDRESS,
         module: PAY_MODULE_NAME,
         function: PAY_JOIN_COIN_FUNC_NAME,
         typeArguments: [await this.getCoinStructTag(t.coinToMerge)],
@@ -2801,7 +2924,7 @@ var LocalTxnDataSerializer = class {
   async newSplitCoin(signerAddress, t) {
     try {
       return await this.newMoveCall(signerAddress, {
-        packageObjectId: SUI_PACKAGE_ID,
+        packageObjectId: SUI_FRAMEWORK_ADDRESS,
         module: PAY_MODULE_NAME,
         function: PAY_SPLIT_COIN_VEC_FUNC_NAME,
         typeArguments: [await this.getCoinStructTag(t.coinObjectId)],
@@ -3014,6 +3137,9 @@ var VoidProvider = class extends Provider {
   async getRpcApiVersion() {
     throw this.newError("getRpcApiVersion");
   }
+  async requestSuiFromFaucet(_recipient, _httpHeaders) {
+    throw this.newError("requestSuiFromFaucet");
+  }
   async getObjectsOwnedByAddress(_address) {
     throw this.newError("getObjectsOwnedByAddress");
   }
@@ -3105,12 +3231,18 @@ var VoidProvider = class extends Provider {
 
 // src/signers/signer-with-provider.ts
 var SignerWithProvider = class {
+  async requestSuiFromFaucet(httpHeaders) {
+    return this.provider.requestSuiFromFaucet(
+      await this.getAddress(),
+      httpHeaders
+    );
+  }
   constructor(provider, serializer) {
     this.provider = provider || new VoidProvider();
     let endpoint = "";
     let skipDataValidation = false;
     if (this.provider instanceof JsonRpcProvider) {
-      endpoint = this.provider.endpoint;
+      endpoint = this.provider.endpoints.fullNode;
       skipDataValidation = this.provider.options.skipDataValidation;
     }
     this.serializer = serializer || new RpcTxnDataSerializer(endpoint, skipDataValidation);
@@ -3286,10 +3418,15 @@ export {
   Ed25519Keypair,
   Ed25519PublicKey,
   HexDataBuffer,
+  ID_STRUCT_NAME,
   JsonRpcProvider,
   JsonRpcProviderWithCache,
   LocalTxnDataSerializer,
   MIST_PER_SUI,
+  MOVE_STDLIB_ADDRESS,
+  NETWORK_TO_API,
+  Network,
+  OBJECT_MODULE_NAME,
   PAY_JOIN_COIN_FUNC_NAME,
   PAY_MODULE_NAME,
   PAY_SPLIT_COIN_VEC_FUNC_NAME,
@@ -3298,11 +3435,12 @@ export {
   RpcTxnDataSerializer,
   SIGNATURE_SCHEME_TO_FLAG,
   SUI_ADDRESS_LENGTH,
-  SUI_PACKAGE_ID,
+  SUI_FRAMEWORK_ADDRESS,
   SUI_TYPE_ARG,
   Secp256k1Keypair,
   Secp256k1PublicKey,
   SignerWithProvider,
+  UID_STRUCT_NAME,
   bcs,
   checkPublicKeyData,
   extractMutableReference,
@@ -3359,8 +3497,10 @@ export {
   isAuthorityName,
   isAuthorityQuorumSignInfo,
   isAuthoritySignature,
+  isBalanceChangeType,
   isCallArg,
   isCertifiedTransaction,
+  isCoinBalanceChangeEvent,
   isCoinDenominationInfoResponse,
   isDelegationData,
   isDelegationSuiObject,
@@ -3371,6 +3511,8 @@ export {
   isExecuteTransactionRequestType,
   isExecutionStatus,
   isExecutionStatusType,
+  isFaucetCoinInfo,
+  isFaucetResponse,
   isGasCostSummary,
   isGatewayTxSeqNumber,
   isGenericAuthoritySignature,
@@ -3383,6 +3525,7 @@ export {
   isMoveEvent,
   isMoveEventField,
   isMovePackageContent,
+  isMutateObjectEvent,
   isNewObjectEvent,
   isObjectArg,
   isObjectContentFields,

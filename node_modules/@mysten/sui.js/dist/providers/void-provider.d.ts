@@ -1,8 +1,10 @@
 import { SignatureScheme } from '../cryptography/publickey';
-import { CertifiedTransaction, CoinDenominationInfoResponse, TransactionDigest, GetTxnDigestsResponse, GatewayTxSeqNumber, SuiObjectInfo, GetObjectDataResponse, SuiObjectRef, SuiMoveFunctionArgTypes, SuiMoveNormalizedFunction, SuiMoveNormalizedStruct, SuiMoveNormalizedModule, SuiMoveNormalizedModules, SuiEventFilter, SuiEventEnvelope, SubscriptionId, ExecuteTransactionRequestType, SuiExecuteTransactionResponse, ObjectOwner, SuiAddress, ObjectId, SuiEvents, TransactionQuery, Ordering, PaginatedTransactionDigests, RpcApiVersion } from '../types';
+import { HttpHeaders } from '../rpc/client';
+import { CertifiedTransaction, CoinDenominationInfoResponse, TransactionDigest, GetTxnDigestsResponse, GatewayTxSeqNumber, SuiObjectInfo, GetObjectDataResponse, SuiObjectRef, SuiMoveFunctionArgTypes, SuiMoveNormalizedFunction, SuiMoveNormalizedStruct, SuiMoveNormalizedModule, SuiMoveNormalizedModules, SuiEventFilter, SuiEventEnvelope, SubscriptionId, ExecuteTransactionRequestType, SuiExecuteTransactionResponse, ObjectOwner, SuiAddress, ObjectId, SuiEvents, TransactionQuery, Ordering, PaginatedTransactionDigests, RpcApiVersion, FaucetResponse } from '../types';
 import { Provider } from './provider';
 export declare class VoidProvider extends Provider {
     getRpcApiVersion(): Promise<RpcApiVersion | undefined>;
+    requestSuiFromFaucet(_recipient: SuiAddress, _httpHeaders?: HttpHeaders): Promise<FaucetResponse>;
     getObjectsOwnedByAddress(_address: string): Promise<SuiObjectInfo[]>;
     getGasObjectsOwnedByAddress(_address: string): Promise<SuiObjectInfo[]>;
     getCoinDenominationInfo(_coin_type: string): CoinDenominationInfoResponse;

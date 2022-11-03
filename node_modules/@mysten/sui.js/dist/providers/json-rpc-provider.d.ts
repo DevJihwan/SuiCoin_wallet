@@ -1,8 +1,9 @@
 import { Provider } from './provider';
-import { JsonRpcClient } from '../rpc/client';
-import { ExecuteTransactionRequestType, CoinDenominationInfoResponse, GatewayTxSeqNumber, GetObjectDataResponse, GetTxnDigestsResponse, ObjectId, ObjectOwner, Ordering, PaginatedTransactionDigests, SubscriptionId, SuiAddress, SuiEventEnvelope, SuiEventFilter, SuiEvents, SuiExecuteTransactionResponse, SuiMoveFunctionArgTypes, SuiMoveNormalizedFunction, SuiMoveNormalizedModule, SuiMoveNormalizedModules, SuiMoveNormalizedStruct, SuiObjectInfo, SuiObjectRef, SuiTransactionResponse, TransactionDigest, TransactionQuery, RpcApiVersion } from '../types';
+import { HttpHeaders, JsonRpcClient } from '../rpc/client';
+import { ExecuteTransactionRequestType, CoinDenominationInfoResponse, GatewayTxSeqNumber, GetObjectDataResponse, GetTxnDigestsResponse, ObjectId, ObjectOwner, Ordering, PaginatedTransactionDigests, SubscriptionId, SuiAddress, SuiEventEnvelope, SuiEventFilter, SuiEvents, SuiExecuteTransactionResponse, SuiMoveFunctionArgTypes, SuiMoveNormalizedFunction, SuiMoveNormalizedModule, SuiMoveNormalizedModules, SuiMoveNormalizedStruct, SuiObjectInfo, SuiObjectRef, SuiTransactionResponse, TransactionDigest, TransactionQuery, RpcApiVersion, FaucetResponse } from '../types';
 import { SignatureScheme } from '../cryptography/publickey';
 import { WebsocketClient, WebsocketClientOptions } from '../rpc/websocket-client';
+import { ApiEndpoints, Network } from '../utils/api-endpoints';
 /**
  * Configuration options for the JsonRpcProvider. If the value of a field is not provided,
  * value in `DEFAULT_OPTIONS` for that field will be used
@@ -28,10 +29,16 @@ export declare type RpcProviderOptions = {
      * Cache timeout in seconds for the RPC API Version
      */
     versionCacheTimoutInSeconds?: number;
+    /**
+     * URL to a faucet(optional). If you initialize `JsonRpcProvider`
+     * with a known `Network` value, this will be populated with a default
+     * value
+     */
+    faucetURL?: string;
 };
 export declare class JsonRpcProvider extends Provider {
-    endpoint: string;
     options: RpcProviderOptions;
+    endpoints: ApiEndpoints;
     protected client: JsonRpcClient;
     protected wsClient: WebsocketClient;
     private rpcApiVersion;
@@ -39,11 +46,12 @@ export declare class JsonRpcProvider extends Provider {
     /**
      * Establish a connection to a Sui RPC endpoint
      *
-     * @param endpoint URL to the Sui RPC endpoint
+     * @param endpoint URL to the Sui RPC endpoint, or a `Network` enum
      * @param options configuration options for the provider
      */
-    constructor(endpoint: string, options?: RpcProviderOptions);
+    constructor(endpoint?: string | Network, options?: RpcProviderOptions);
     getRpcApiVersion(): Promise<RpcApiVersion | undefined>;
+    requestSuiFromFaucet(recipient: SuiAddress, httpHeaders?: HttpHeaders): Promise<FaucetResponse>;
     getMoveFunctionArgTypes(packageId: string, moduleName: string, functionName: string): Promise<SuiMoveFunctionArgTypes>;
     getNormalizedMoveModulesByPackage(packageId: string): Promise<SuiMoveNormalizedModules>;
     getNormalizedMoveModule(packageId: string, moduleName: string): Promise<SuiMoveNormalizedModule>;
