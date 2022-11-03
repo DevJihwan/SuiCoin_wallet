@@ -66,28 +66,52 @@ function getTransactionObj() {
 }
 //getTransactionObj();
 /*
-* get Mnemonic word
-* param :
-* return :
+* get Mnemonic, seed, keypair
+* return : keypair
 */
 function getMnemonic() {
     return __awaiter(this, void 0, void 0, function () {
-        var mnemonics, seed, keypair;
+        var mnemonics, seed;
         return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    mnemonics = bip39.generateMnemonic();
-                    //const keypair = new Ed25519Keypair();
-                    console.log("mnemonics : " + mnemonics);
-                    return [4 /*yield*/, bip39.mnemonicToSeed(mnemonics)];
-                case 1:
-                    seed = _a.sent();
-                    console.log("seed : " + seed);
-                    keypair = sui_js_1.Ed25519Keypair.fromSeed(seed);
-                    console.log("keypair : " + keypair);
-                    return [2 /*return*/];
-            }
+            mnemonics = bip39.generateMnemonic();
+            //const keypair = new Ed25519Keypair();
+            console.log("mnemonics : " + mnemonics);
+            seed = bip39.mnemonicToSeed(mnemonics)
+                .then(function (buffer) {
+                //seed 문구를 uint8array로 변환
+                var a = new Uint8Array(buffer.toJSON().data.slice(0, 32));
+                console.log("convert to Uint8Array : " + a);
+                //시드로 부터 keypari생성
+                var keypair = sui_js_1.Ed25519Keypair.fromSeed(a);
+                console.log("keypair : " + keypair);
+                console.log("keypair.getPublicKey : " + keypair.getPublicKey().toSuiAddress());
+                //키페어에서 공개키 주소 조립
+                var pubkey = "0x" + keypair.getPublicKey().toSuiAddress();
+                console.log("pubkey : " + pubkey);
+                return keypair;
+            })["catch"](function (e) {
+                console.log("Error : " + e);
+            });
+            return [2 /*return*/];
         });
     });
 }
-getMnemonic();
+//getMnemonic();
+// 위 소스코드로 발급받은 공개키 0x18ef8032392a821b3092b7f0e044cc05bb39bb8a
+// 잔액 0.01sui
+/*
+* get object detail
+*/
+function getObject() {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            provider.getObject('0x18ef8032392a821b3092b7f0e044cc05bb39bb8a')
+                .then(function (result) {
+                console.log("txn.status : " + result.status);
+                console.log("txn.details : " + result.details);
+            });
+            return [2 /*return*/];
+        });
+    });
+}
+getObject();
