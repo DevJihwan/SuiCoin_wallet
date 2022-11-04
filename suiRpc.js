@@ -144,8 +144,10 @@ function sendToken() {
                 .then(function (_singer) {
                 console.log("_singer : " + _singer);
                 var txn = {
+                    //코인 객체 id
                     suiObjectId: "0x33ef108d19289702a352a86b6f948d5e4b437500",
                     gasBudget: 1000,
+                    //받는 사람 주소
                     recipient: "0x52a2abe8940ae83a48e707a4d583db5b8e40a2b5",
                     amount: 5000000
                 };
@@ -160,4 +162,55 @@ function sendToken() {
         });
     });
 }
-sendToken();
+//sendToken();
+/*
+* check balance of coin
+*/
+function getBalance() {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            console.log("STRAT SEARCHING BALANCE OF SUI");
+            //공개키가 가지고 있는 Sui Ojbject 확인
+            provider.getObjectsOwnedByAddress("0x52a2abe8940ae83a48e707a4d583db5b8e40a2b5")
+                .then(function (result) {
+                //result = 모든 수이 오브젝트
+                console.log("result of objectId : " + result);
+                // console.log("result of objectId : "+result.length);
+                // console.log("result of objectId : "+result[0].objectId);
+                // console.log("result of objectId : "+result[0].digest);
+                // console.log("result of objectId : "+result[0].type);
+                // console.log("result of objectId : "+result[0].version);
+                return result;
+            })
+                .then(function (objs) {
+                var sizeOfobj = objs.length; //가지고 있는 수이 오브젝트 갯수 
+                var arr = [];
+                //가지고 있는 수이 오브젝트 갯수 만큼 for loop
+                for (var i = 0; i < sizeOfobj; i++) {
+                    //objectId로 오브젝트 데이터 내역 조회
+                    provider.getObject(objs[i].objectId)
+                        .then(function (returnObjectData) {
+                        //오브젝트의 balance를 빼오기 위해 string으로 전환
+                        //console.log("returnObjectData : " + JSON.stringify(returnObjectData.details));
+                        var toJsonResutl = JSON.stringify(returnObjectData.details);
+                        //밸런스값만 뺴오기 위한 스플릿
+                        console.log("toJsonResutl : " + toJsonResutl.split(",")[3].split(":")[2]);
+                        var objectBalance = toJsonResutl.split(",")[3].split(":")[2];
+                        var sumOfbalance = parseFloat(objectBalance);
+                        arr.push(sumOfbalance);
+                        var subTotal = arr.reduce(function (accumulator, current) {
+                            return accumulator + current;
+                        }, 0);
+                        console.log("subTotal : " + subTotal);
+                    })["catch"](function (error) {
+                        console.log("when for loop, error : " + error);
+                    });
+                }
+            })["catch"](function (error) {
+                console.log(" error : " + error);
+            });
+            return [2 /*return*/];
+        });
+    });
+}
+getBalance();
