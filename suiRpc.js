@@ -149,7 +149,7 @@ function sendToken() {
                     gasBudget: 1000,
                     //받는 사람 주소
                     recipient: "0x52a2abe8940ae83a48e707a4d583db5b8e40a2b5",
-                    amount: 5000000
+                    amount: 2000000
                 };
                 _singer.transferSuiWithRequestType(txn)
                     .then(function (result) {
@@ -175,6 +175,7 @@ function getBalance() {
                 .then(function (result) {
                 //result = 모든 수이 오브젝트
                 console.log("result of objectId : " + result);
+                //조회된 오브젝트의 값
                 // console.log("result of objectId : "+result.length);
                 // console.log("result of objectId : "+result[0].objectId);
                 // console.log("result of objectId : "+result[0].digest);
@@ -196,12 +197,16 @@ function getBalance() {
                         //밸런스값만 뺴오기 위한 스플릿
                         console.log("toJsonResutl : " + toJsonResutl.split(",")[3].split(":")[2]);
                         var objectBalance = toJsonResutl.split(",")[3].split(":")[2];
+                        //합산을 위한 형변환
                         var sumOfbalance = parseFloat(objectBalance);
+                        //Number array에 밀어넣기 
                         arr.push(sumOfbalance);
+                        //Number array 객체 값 합산
                         var subTotal = arr.reduce(function (accumulator, current) {
                             return accumulator + current;
                         }, 0);
                         console.log("subTotal : " + subTotal);
+                        return subTotal;
                     })["catch"](function (error) {
                         console.log("when for loop, error : " + error);
                     });
@@ -213,4 +218,73 @@ function getBalance() {
         });
     });
 }
-getBalance();
+//getBalance();
+/*
+* 현재 보유하고 있는 Sui 리스트 (각 오브젝트 별 오브젝트id, 타입{:수이}, 잔액, )
+*/
+function getOwnSuiList() {
+    return __awaiter(this, void 0, void 0, function () {
+        var map;
+        return __generator(this, function (_a) {
+            console.log("STRAT SEARCHING History OF transaction");
+            map = new Map();
+            //공개키가 가지고 있는 Sui Ojbject 확인
+            provider.getObjectsOwnedByAddress("0x52a2abe8940ae83a48e707a4d583db5b8e40a2b5")
+                .then(function (resultOfObjects) {
+                //보유하고 있는 오브젝트 갯수 파악
+                var sizeOfobject = resultOfObjects.length;
+                console.log("sizeOfobject : " + sizeOfobject);
+                //map에 오브젝트id와 type을 먼저 셋팅 
+                for (var i = 0; i < sizeOfobject; i++) {
+                    console.log("\uCCAB \uBC88\uC9F8 loop\uC758 ".concat(i, "\uBC88\uC9F8"));
+                    map.set(resultOfObjects[i].objectId, [resultOfObjects[i].type]); //key : objectId, value : sui type
+                }
+                //밸런스를 가져오기 위한 작업
+                var sizeOfmap = map.size;
+                var objectBalance;
+                var _loop_1 = function (i) {
+                    console.log("\uB450 \uBC88\uC9F8 loop\uC758 ".concat(i, "\uBC88\uC9F8"));
+                    provider.getObject(resultOfObjects[i].objectId)
+                        .then(function (reseult) {
+                        //잔액을 조회 
+                        var toJsonResutl = JSON.stringify(reseult.details);
+                        objectBalance = toJsonResutl.split(",")[3].split(":")[2];
+                        console.log("objectBalance : " + objectBalance);
+                        //typescript에서 map은 set으로 값을 새로 지정해줌. 최근 값만 업데이트가 되기 때문에 기존 밸류값을 템프에 넣어두고 다시 셋에 사용함. 
+                        var tempValue = map.get(resultOfObjects[i].objectId);
+                        map.set(resultOfObjects[i].objectId, [tempValue, objectBalance]);
+                        //map 구조 셋팅 확인용 
+                        console.log("check values : " + map.get('0x4fbc250ac48976a36898777fe94f2f5540f99e22'));
+                    });
+                };
+                for (var i = 0; i < sizeOfmap; i++) {
+                    _loop_1(i);
+                }
+            });
+            //end .then
+            //key: objectId, value : type, balance
+            return [2 /*return*/, map];
+        });
+    });
+}
+//getOwnSuiList();
+/*
+* 거래 히스토리를 보여주는 방법 : 보유하고 있는 수이 코인 객체를 불러옴. 각 객체의 digest를 가져오고, digest로 transaction query를 날려서 송금인, 수신인 주소를 provider와 비교하여 구분
+*/
+function getHistoryTranssaction() {
+    return __awaiter(this, void 0, void 0, function () {
+        var pubkey;
+        return __generator(this, function (_a) {
+            console.log("Staring get transaction history");
+            pubkey = '0x52a2abe8940ae83a48e707a4d583db5b8e40a2b5';
+            //공개키가 가지고 있는 Sui Ojbject 확인
+            provider.getObjectsOwnedByAddress("0x52a2abe8940ae83a48e707a4d583db5b8e40a2b5")
+                .then(function (result) {
+                //result = 모든 수이 오브젝트
+                console.log("result of objectId : " + result);
+            });
+            return [2 /*return*/];
+        });
+    });
+}
+getHistoryTranssaction();

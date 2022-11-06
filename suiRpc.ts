@@ -115,7 +115,7 @@ async function sendToken() {
             gasBudget: 1000,
             //받는 사람 주소
             recipient: "0x52a2abe8940ae83a48e707a4d583db5b8e40a2b5",
-            amount: 5000000
+            amount: 2000000
         }
 
         _singer.transferSuiWithRequestType(txn)
@@ -148,6 +148,9 @@ async function getBalance() {
     .then((result) => {
         //result = 모든 수이 오브젝트
         console.log("result of objectId : "+result);
+
+
+        //조회된 오브젝트의 값
         // console.log("result of objectId : "+result.length);
         // console.log("result of objectId : "+result[0].objectId);
         // console.log("result of objectId : "+result[0].digest);
@@ -203,4 +206,61 @@ async function getBalance() {
 }
 
 
-getBalance();
+//getBalance();
+
+
+/*
+* 현재 보유하고 있는 Sui 리스트 (각 오브젝트 별 오브젝트id, 타입{:수이}, 잔액, )
+*/ 
+async function getOwnSuiList(){
+
+    console.log("STRAT SEARCHING History OF transaction");
+
+    //결과를 리턴하기 위한 map 정의 (key : 오브젝트id, value {타입, 잔액})
+    const map = new Map<string, string[]>();
+
+    //공개키가 가지고 있는 Sui Ojbject 확인
+    provider.getObjectsOwnedByAddress("0x52a2abe8940ae83a48e707a4d583db5b8e40a2b5")
+    .then((resultOfObjects) => {
+        //보유하고 있는 오브젝트 갯수 파악
+        const sizeOfobject = resultOfObjects.length;
+        console.log("sizeOfobject : "+ sizeOfobject);
+
+
+        //map에 오브젝트id와 type을 먼저 셋팅 
+        for(let i=0; i<sizeOfobject; i++){
+            console.log(`첫 번째 loop의 ${i}번째`);
+
+            map.set(resultOfObjects[i].objectId,[resultOfObjects[i].type]);//key : objectId, value : sui type
+        }
+
+        //밸런스를 가져오기 위한 작업
+        const sizeOfmap = map.size;
+        let objectBalance;
+        for(let i=0; i<sizeOfmap; i++){
+            console.log(`두 번째 loop의 ${i}번째`);
+
+            provider.getObject(resultOfObjects[i].objectId)
+            .then((reseult) => {
+                //잔액을 조회 
+                const toJsonResutl = JSON.stringify(reseult.details);
+                objectBalance =  toJsonResutl.split(",")[3].split(":")[2];
+                console.log("objectBalance : "+objectBalance);
+
+                //typescript에서 map은 set으로 값을 새로 지정해줌. 최근 값만 업데이트가 되기 때문에 기존 밸류값을 템프에 넣어두고 다시 셋에 사용함. 
+                const tempValue = map.get(resultOfObjects[i].objectId);
+                map.set(resultOfObjects[i].objectId, [tempValue,objectBalance]);                
+
+                //map 구조 셋팅 확인용 
+                console.log("check values : " + map.get('0x4fbc250ac48976a36898777fe94f2f5540f99e22'));
+            });
+
+        }
+    })
+    //end .then
+    //key: objectId, value : type, balance
+    return map;
+}
+
+//getOwnSuiList();
+
