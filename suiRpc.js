@@ -41,7 +41,7 @@ var bip39 = require("bip39");
 /*
 * sui devnet endpoint URI : https://fullnode.devnet.sui.io
 */
-var provider = new sui_js_1.JsonRpcProvider('https://fullnode.devnet.sui.io');
+var provider = new sui_js_1.JsonRpcProvider(sui_js_1.Network.DEVNET);
 /*
 * sui devnet pubkey info : 0x52a2abe8940ae83a48e707a4d583db5b8e40a2b5
 */
@@ -273,18 +273,108 @@ function getOwnSuiList() {
 */
 function getHistoryTranssaction() {
     return __awaiter(this, void 0, void 0, function () {
-        var pubkey;
+        var pubkey, resultOfdiget, _flag, _recipients, _amount, _gas, map, i, history_1, selector, methodName, a, data, subtotal;
         return __generator(this, function (_a) {
-            console.log("Staring get transaction history");
-            pubkey = '0x52a2abe8940ae83a48e707a4d583db5b8e40a2b5';
-            //공개키가 가지고 있는 Sui Ojbject 확인
-            provider.getObjectsOwnedByAddress("0x52a2abe8940ae83a48e707a4d583db5b8e40a2b5")
-                .then(function (result) {
-                //result = 모든 수이 오브젝트
-                console.log("result of objectId : " + result);
-            });
-            return [2 /*return*/];
+            switch (_a.label) {
+                case 0:
+                    console.log("Staring get transaction history");
+                    pubkey = '0x52a2abe8940ae83a48e707a4d583db5b8e40a2b5';
+                    return [4 /*yield*/, provider.getTransactionsForAddress(pubkey)];
+                case 1:
+                    resultOfdiget = _a.sent();
+                    // console.log("resultOfdiget : "+resultOfdiget);
+                    console.log("resultOfdiget : " + resultOfdiget.length);
+                    map = new Map();
+                    i = 0;
+                    _a.label = 2;
+                case 2:
+                    if (!(i < resultOfdiget.length)) return [3 /*break*/, 5];
+                    return [4 /*yield*/, provider.getTransactionWithEffects(resultOfdiget[i])];
+                case 3:
+                    history_1 = _a.sent();
+                    console.log("".concat(i, "\uBC88\uC9F8 digest : ").concat(resultOfdiget[i]));
+                    selector = history_1.certificate.data.transactions;
+                    methodName = JSON.stringify(selector).split("\"")[1];
+                    console.log("methodName : " + methodName);
+                    a = JSON.stringify(selector[0]);
+                    // console.log("a : " + a);
+                    _gas = history_1.effects.events[0].coinBalanceChange.amount;
+                    data = JSON.parse(a);
+                    if (methodName == "PaySui") {
+                        // console.log("data.Paysui.amounts : "+ data.PaySui.amounts);
+                        //amount가 리스트로 내려오면 내려온 값 합산
+                        if (1 < data.PaySui.amounts.length) {
+                            subtotal = data.PaySui.amounts.reduce(function (accumulator, current) {
+                                return accumulator + current;
+                            }, 0);
+                            // console.log("subtotal : "+subtotal);
+                            _amount = subtotal;
+                        }
+                        else {
+                            _amount = data.PaySui.amounts;
+                        }
+                        // console.log("data.Paysui.recipients : "+data.PaySui.recipients);
+                        //recipients가 복수로 내려오는 경우 확인 (테스트 토큰 지급시 수령인 5개가 모두 동일 주소로 내려옴)
+                        if (1 < data.PaySui.recipients.length) {
+                            _recipients = data.PaySui.recipients[0];
+                        }
+                        else {
+                            _recipients = data.PaySui.recipients;
+                        }
+                        //수령인과 공개키를 비교하여 플래그 결정 
+                        if (pubkey == _recipients) {
+                            _flag = "Received";
+                        }
+                        else {
+                            _flag = "Sent";
+                        }
+                    }
+                    else if (methodName == "Pay") {
+                        // console.log("data.Pay.amounts : "+data.Pay.amounts);
+                        _amount = data.Pay.amounts;
+                        // console.log("data.Pay.recipients : "+data.Pay.recipients);
+                        _recipients = data.Pay.recipients;
+                        //수령인과 공개키를 비교하여 플래그 결정 
+                        if (pubkey == _recipients) {
+                            _flag = "Received";
+                        }
+                        else {
+                            _flag = "Sent";
+                        }
+                    }
+                    console.log("_flag : ".concat(_flag, ", _recipients : ").concat(_recipients, ", _amount : ").concat(_amount, ", _gas : ").concat(_gas));
+                    map.set(i, [_flag, _recipients, _amount, _gas]);
+                    _a.label = 4;
+                case 4:
+                    i++;
+                    return [3 /*break*/, 2];
+                case 5: return [2 /*return*/, map];
+            }
         });
     });
 }
 getHistoryTranssaction();
+/*
+*  requets sui test token
+*/
+function getRequestTestToken() {
+    return __awaiter(this, void 0, void 0, function () {
+        var _provider, _pubkey, response;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    console.log("Staring get Request Test Token");
+                    _provider = new sui_js_1.JsonRpcProvider(sui_js_1.Network.DEVNET, {
+                        faucetURL: 'https://faucet.devnet.sui.io'
+                    });
+                    _pubkey = "0x52a2abe8940ae83a48e707a4d583db5b8e40a2b5";
+                    return [4 /*yield*/, _provider.requestSuiFromFaucet(_pubkey)];
+                case 1:
+                    response = _a.sent();
+                    console.log(response);
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+// getRequestTestToken();
