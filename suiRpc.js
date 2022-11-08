@@ -353,7 +353,7 @@ function getHistoryTranssaction() {
         });
     });
 }
-getHistoryTranssaction();
+//getHistoryTranssaction();
 /*
 *  requets sui test token
 */
@@ -378,3 +378,22 @@ function getRequestTestToken() {
     });
 }
 // getRequestTestToken();
+/*
+* 계좌 검증
+*/
+function isSuiAddress() {
+    return __awaiter(this, void 0, void 0, function () {
+        var pubkey, SUI_ADDRESS_LENGTH, checkReg1, checkReg2, checkReg3;
+        return __generator(this, function (_a) {
+            pubkey = '0x18ef8032392a821b3092b7f0e044cc05bb39bb8a';
+            SUI_ADDRESS_LENGTH = 20;
+            checkReg1 = /^(0x|0X)?[a-fA-F0-9]+$/.test(pubkey) && pubkey.length % 2 === 0;
+            checkReg2 = /^(0x|0X)/.test(pubkey) ? (pubkey.length - 2) / 2 : pubkey.length / 2;
+            checkReg3 = SUI_ADDRESS_LENGTH;
+            console.log("checkReg1 : ".concat(checkReg1, ", checkReg2 : ").concat(checkReg2, ", checkReg3 : ").concat(checkReg3));
+            console.log(checkReg1 && checkReg2 === checkReg3);
+            return [2 /*return*/, (checkReg1 && checkReg2 === checkReg3)];
+        });
+    });
+}
+isSuiAddress();

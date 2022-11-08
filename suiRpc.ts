@@ -1,4 +1,4 @@
-import { JsonRpcProvider,Ed25519Keypair, RawSigner, PublicKey, Coin, Network } from '@mysten/sui.js';
+import { JsonRpcProvider,Ed25519Keypair, RawSigner, PublicKey, Network } from '@mysten/sui.js';
 import * as bip39 from 'bip39';
 import * as nacl from 'tweetnacl';
 import axios, {AxiosResponse} from 'axios';
@@ -367,7 +367,7 @@ async function getHistoryTranssaction() {
     
 }
 
-getHistoryTranssaction();
+//getHistoryTranssaction();
 
 
 
@@ -396,3 +396,24 @@ async function getRequestTestToken(){
 
 // getRequestTestToken();
 
+
+
+/*
+* 계좌 검증 
+*/
+
+async function isSuiAddress(){
+
+    const pubkey = '0x18ef8032392a821b3092b7f0e044cc05bb39bb8a';
+    const SUI_ADDRESS_LENGTH = 20;
+    
+    const checkReg1 = /^(0x|0X)?[a-fA-F0-9]+$/.test(pubkey) && pubkey.length % 2 === 0;
+    const checkReg2 = /^(0x|0X)/.test(pubkey) ? (pubkey.length - 2) / 2 : pubkey.length / 2;
+    const checkReg3 = SUI_ADDRESS_LENGTH
+
+    console.log(`checkReg1 : ${checkReg1}, checkReg2 : ${checkReg2}, checkReg3 : ${checkReg3}`);
+    console.log(checkReg1 && checkReg2 === checkReg3);
+    return (checkReg1 && checkReg2 === checkReg3)
+}
+
+isSuiAddress();
